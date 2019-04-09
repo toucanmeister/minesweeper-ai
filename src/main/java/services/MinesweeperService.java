@@ -1,8 +1,11 @@
-package gameplay;
+package services;
 
+import lombok.Getter;
+import lombok.Setter;
 import models.Board;
 import models.Cell;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import pages.MinesweeperPage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,122 +13,88 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-public class Sweeper {
-
+@Getter
+@Setter
+public class MinesweeperService {
     private Board board;
-    private ChromeDriver driver;
-    private boolean alive;
-    private boolean won;
+    private MinesweeperPage minesweeperPage;
+    RemoteWebDriver driver;
 
-    Sweeper(ChromeDriver driver) {
-        this.driver = driver;
+    public MinesweeperService(RemoteWebDriver driver) {
+        setMinesweeperPage(new MinesweeperPage(driver));
         createBoard();
+        setDriver(driver);
     }
 
     private void createBoard() {
-        this.board = new Board(driver);
-        driver.findElementById("startButton").click();
-        sleepFor(1000);
+        setBoard(new Board());
     }
 
-    public static void sleepFor(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+    public void startGame() {
+        getMinesweeperPage().clickStart();
+        playMinesweeper();
     }
 
     boolean playMinesweeper() {
-        board.cells[ThreadLocalRandom.current().nextInt(0, Board.SIZE)].click();
-        updateAliveStatus();
-        updateWonStatus();
+        clickRandomCell();
 
-        if (alive) {
+        if (getMinesweeperPage().isAlive()) {
             return playLoop();
         } else {
             return false;
         }
     }
 
-    private void updateAliveStatus() {
-        try {
-            driver.findElementById("die");
-            this.alive = false;
-        } catch (Exception e){
-            this.alive = true;
-        }
-    }
-
-    private void updateWonStatus() {
-        try {
-            driver.findElementById("win");
-            this.won = true;
-        } catch (Exception e) {
-            this.won = false;
-        }
-    }
-
     private boolean playLoop() {
         while(true) {
-            System.out.println("FLAG");
             findAndFlagMines();
-            if (won) {
+            if (getMinesweeperPage().isWon()) {
                 return true;
             }
-
-            System.out.println("CLICK");
             boolean didSomething = findAndClickSafeCells();
+
             if (!didSomething){
-                System.out.println("RANDOM");
                 clickRandomCell();
             }
 
-            if (won) {
+            if (getMinesweeperPage().isWon()) {
                 return true;
-            } else if (!alive) {
+            } else if (!getMinesweeperPage().isAlive()) {
                 return false;
             }
         }
     }
 
-    private void clickRandomCell() {
+    public void clickRandomCell() {
         Cell[] unclickedCells = Arrays.stream(board.cells)
-                .filter(Predicates.cellIsNotClicked())
-                .filter(Predicates.cellIsNotFlagged())
+                .filter(minesweeperPage.cellIsNotClickedAndNotFlagged())
                 .toArray(Cell[]::new);
 
-        unclickedCells[ThreadLocalRandom.current().nextInt(0, unclickedCells.length)].click();
-        updateAliveStatus();
-        updateWonStatus();
+        getMinesweeperPage().clickCell(unclickedCells[ThreadLocalRandom.current().nextInt(0, unclickedCells.length)]);
     }
 
     private void findAndFlagMines() {
         List<Cell> foundMines = findMines();
         flag(foundMines);
-        updateWonStatus();
     }
 
     private boolean findAndClickSafeCells() {
         List<Cell> safeCells = findSafeCells();
         click(safeCells);
-        updateAliveStatus();
-        updateWonStatus();
 
         return !safeCells.isEmpty();
     }
 
     private List<Cell> findMines() {
         List<Cell> cellsWithNeighbormines = findCellsWithNeighbormines();
-
         List<Cell> mines = new ArrayList<>();
 
+        //SLOW
         for (Cell cell: cellsWithNeighbormines) {
             if (neighborsHaveToBeMines(cell)) {
                 mines.addAll(cell.getNeighbors().stream()
                         .map(neighborNum -> board.cells[neighborNum])
-                        .filter(Predicates.cellIsNotFlagged())
-                        .filter(Predicates.cellIsNotClicked())
+                        .filter(minesweeperPage.cellIsNotClickedAndNotFlagged())
                         .collect(Collectors.toList()));
             }
         }
@@ -140,29 +109,28 @@ public class Sweeper {
 
         int numOfNeighbors = (int) neighbors.stream()
                 .map(neighborNum -> board.cells[neighborNum])
-                .filter(Predicates.cellIsNotClicked())
+                .filter(minesweeperPage.cellIsNotClicked())
                 .count();
-        return numOfNeighbors == Integer.parseInt(cell.getWebElement().getText());
+        return numOfNeighbors == Integer.parseInt(getMinesweeperPage().getCellText(cell));
     }
 
     private List<Cell> findCellsWithNeighbormines() {
         return Arrays.stream(board.cells)
-                .filter(Predicates.cellHasNeighbormines())
+                .filter(minesweeperPage.cellHasNeighbormines())
                 .collect(Collectors.toList());
     }
 
 
     private List<Cell> findSafeCells() {
         List<Cell> cellsWithNeighborMines = findCellsWithNeighbormines();
-
         List<Cell> safeCells = new ArrayList<>();
 
+        //SLOW
         for (Cell cell: cellsWithNeighborMines) {
-            if (allMinesFoundAround(cell)){
+            if (allMinesFoundAround(cell)) {
                 safeCells.addAll(cell.getNeighbors().stream()
                         .map(neighborNum -> board.cells[neighborNum])
-                        .filter(Predicates.cellIsNotClicked())
-                        .filter(Predicates.cellIsNotFlagged())
+                        .filter(minesweeperPage.cellIsNotClickedAndNotFlagged())
                         .collect(Collectors.toList()));
             }
         }
@@ -174,21 +142,20 @@ public class Sweeper {
     private boolean allMinesFoundAround(Cell cell) {
         int numOfFlags = (int) cell.getNeighbors().stream()
             .map(neighborNum -> board.cells[neighborNum])
-            .filter(Predicates.cellIsFlagged())
+            .filter(minesweeperPage.cellIsFlagged())
             .count();
-
-        return numOfFlags == Integer.parseInt(cell.getWebElement().getText());
+        return numOfFlags == Integer.parseInt(getMinesweeperPage().getCellText(cell));
     }
 
     private void click(List<Cell> safeCells) {
         for(Cell cell: safeCells) {
-            cell.click();
+            getMinesweeperPage().clickCell(cell);
         }
     }
 
     private void flag(List<Cell> foundMines) {
         for(Cell cell: foundMines) {
-            cell.flag(driver);
+            getMinesweeperPage().flagCell(cell);
         }
     }
 }

@@ -1,7 +1,5 @@
 package models;
 
-import org.openqa.selenium.chrome.ChromeDriver;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -13,10 +11,10 @@ public class Board {
 
     public Cell[] cells = new Cell[SIZE];
 
-    public Board(ChromeDriver driver) {
+    public Board() {
 
         for (int i = 0; i < SIZE; i++) {
-            cells[i] = new Cell(i, createCellCoordinates(i), driver.findElementById(Integer.toString(i)));
+            cells[i] = new Cell(i, createCellCoordinates(i));
         }
         for (Cell cell: cells) {
             cell.addNeighbors(createNeighborList(cell));
