@@ -169,6 +169,7 @@ public class MinesweeperService {
 
     private void updateClickedCells() {
         Arrays.stream(board.cells)
+            .filter(minesweeperPage.cellIsNotClicked())
             .filter(minesweeperPage.webElementIsClicked())
             .forEach(cell -> {
                 cell.setStatus(CellStatus.CLICKED);
