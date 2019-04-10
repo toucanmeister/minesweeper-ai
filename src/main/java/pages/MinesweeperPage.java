@@ -2,6 +2,7 @@ package pages;
 
 import lombok.Getter;
 import lombok.Setter;
+import models.Board;
 import models.Cell;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
@@ -15,6 +16,7 @@ import java.util.function.Predicate;
 @Setter
 public class MinesweeperPage {
     private RemoteWebDriver driver;
+    private Board board;
 
     final private By startButton = By.id("startButton");
     final private By numberOfRows = By.id("rowInput");
@@ -36,13 +38,15 @@ public class MinesweeperPage {
         return cell -> getCellBackgroundColor(cell).equals("rgba(255, 99, 71, 1)");
     }
 
-    public Predicate<Cell> cellIsNotFlagged() {
-        return cell -> !getCellBackgroundColor(cell).equals("rgba(255, 99, 71, 1)");
-    }
-
     public Predicate<Cell> cellIsNotClickedAndNotFlagged() {
         return cell -> !getCellBackgroundColor(cell).equals("rgba(169, 169, 169, 1)") &&
             !getCellBackgroundColor(cell).equals("rgba(255, 99, 71, 1)");
+    }
+
+    public Predicate<Cell> cellHasOpenNeighbors() {
+        return cell -> cell.getNeighbors().stream()
+                .map(neighborNum -> board.cells[neighborNum])
+                .anyMatch(cellIsNotClickedAndNotFlagged());
     }
 
     public MinesweeperPage(RemoteWebDriver driver) {
@@ -104,5 +108,15 @@ public class MinesweeperPage {
 
     private WebElement getCellWebElement(Cell cell) {
         return getDriver().findElementById(String.valueOf(cell.getCellNum()));
+    }
+
+    public void setNumOfRows(int numOfRows) {
+        getDriver().findElement(numberOfRows).clear();
+        getDriver().findElement(numberOfRows).sendKeys(String.valueOf(numOfRows));
+    }
+
+    public void setNumOfMines(int numOfMines) {
+        getDriver().findElement(numberOfMines).clear();
+        getDriver().findElement(numberOfMines).sendKeys(String.valueOf(numOfMines));
     }
 }

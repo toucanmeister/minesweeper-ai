@@ -22,50 +22,53 @@ public class MinesweeperService {
 
     public MinesweeperService(RemoteWebDriver driver) {
         setMinesweeperPage(new MinesweeperPage(driver));
-        createBoard();
         setDriver(driver);
     }
 
-    private void createBoard() {
-        setBoard(new Board());
+    private void createBoard(int numOfRows) {
+        setBoard(new Board(getMinesweeperPage(),numOfRows));
+        minesweeperPage.setBoard(board);
     }
 
-    public void startGame() {
+    public void startGame(int numOfRows, int numOfMines) {
+        createBoard(numOfRows);
+
+        getMinesweeperPage().setNumOfRows(numOfRows);
+        getMinesweeperPage().setNumOfMines(numOfMines);
         getMinesweeperPage().clickStart();
+
         playMinesweeper();
     }
 
-    boolean playMinesweeper() {
+    private void playMinesweeper() {
         clickRandomCell();
-
         if (getMinesweeperPage().isAlive()) {
-            return playLoop();
-        } else {
-            return false;
+            playLoop();
         }
     }
 
-    private boolean playLoop() {
+    private void playLoop() {
         while(true) {
+            System.out.println("FLAG");
             findAndFlagMines();
             if (getMinesweeperPage().isWon()) {
-                return true;
+                break;
             }
+            System.out.println("CLICK");
             boolean didSomething = findAndClickSafeCells();
 
             if (!didSomething){
+                System.out.println("RANDOM");
                 clickRandomCell();
             }
 
-            if (getMinesweeperPage().isWon()) {
-                return true;
-            } else if (!getMinesweeperPage().isAlive()) {
-                return false;
+            if (getMinesweeperPage().isWon() || !getMinesweeperPage().isAlive()) {
+                break;
             }
         }
     }
 
-    public void clickRandomCell() {
+    private void clickRandomCell() {
         Cell[] unclickedCells = Arrays.stream(board.cells)
                 .filter(minesweeperPage.cellIsNotClickedAndNotFlagged())
                 .toArray(Cell[]::new);
@@ -89,7 +92,6 @@ public class MinesweeperService {
         List<Cell> cellsWithNeighbormines = findCellsWithNeighbormines();
         List<Cell> mines = new ArrayList<>();
 
-        //SLOW
         for (Cell cell: cellsWithNeighbormines) {
             if (neighborsHaveToBeMines(cell)) {
                 mines.addAll(cell.getNeighbors().stream()
@@ -117,6 +119,7 @@ public class MinesweeperService {
     private List<Cell> findCellsWithNeighbormines() {
         return Arrays.stream(board.cells)
                 .filter(minesweeperPage.cellHasNeighbormines())
+                .filter(minesweeperPage.cellHasOpenNeighbors())
                 .collect(Collectors.toList());
     }
 
@@ -125,7 +128,7 @@ public class MinesweeperService {
         List<Cell> cellsWithNeighborMines = findCellsWithNeighbormines();
         List<Cell> safeCells = new ArrayList<>();
 
-        //SLOW
+        System.out.println("start click");
         for (Cell cell: cellsWithNeighborMines) {
             if (allMinesFoundAround(cell)) {
                 safeCells.addAll(cell.getNeighbors().stream()
@@ -134,6 +137,7 @@ public class MinesweeperService {
                         .collect(Collectors.toList()));
             }
         }
+        System.out.println("stop click");
         return safeCells.stream()
                 .distinct()
                 .collect(Collectors.toList());

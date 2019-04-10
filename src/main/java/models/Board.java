@@ -4,28 +4,43 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+import pages.MinesweeperPage;
+
+@Setter
+@Getter
 public class Board {
+    private int numOfRows;
+    private MinesweeperPage minesweeperPage;
 
-    public final static int SIZE = 64;
-    public final static int ROWSIZE = 8;
+    public Cell[] cells;
+    public List<Cell> unclickedCells;
+    public List<Cell> unclickedAndUnflaggedCells;
+    public List<Cell> flaggedCells;
 
-    public Cell[] cells = new Cell[SIZE];
+    public Board(MinesweeperPage minesweeperPage, int numOfRows) {
+        this.numOfRows = numOfRows;
+        cells = new Cell[getBoardSize()];
 
-    public Board() {
-
-        for (int i = 0; i < SIZE; i++) {
+        for (int i = 0; i < getBoardSize(); i++) {
             cells[i] = new Cell(i, createCellCoordinates(i));
         }
         for (Cell cell: cells) {
             cell.addNeighbors(createNeighborList(cell));
         }
+        this.minesweeperPage = minesweeperPage;
+    }
+
+    public int getBoardSize() {
+        return numOfRows * numOfRows;
     }
 
     private int[] createCellCoordinates(int cellNum) throws IndexOutOfBoundsException {
 
         int counter = 0;
-        for (int row = 0; row < Board.ROWSIZE; row++) {
-            for (int column = 0; column < Board.ROWSIZE; column++) {
+        for (int row = 0; row < getNumOfRows(); row++) {
+            for (int column = 0; column < getNumOfRows(); column++) {
                 if (counter == cellNum) {
                     return new int[]{row, column};
                 }
@@ -61,10 +76,10 @@ public class Board {
 
     private boolean coordinatesAreOnBoard(int row, int column) {
 
-        if (row < 0 || row > Board.ROWSIZE - 1) {
+        if (row < 0 || row > getNumOfRows() - 1) {
             return false;
         } else {
-            return column >= 0 && column <= Board.ROWSIZE - 1;
+            return column >= 0 && column <= getNumOfRows() - 1;
         }
     }
 
