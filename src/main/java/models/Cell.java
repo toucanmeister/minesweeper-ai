@@ -1,5 +1,6 @@
 package models;
 
+import enums.CellStatus;
 import lombok.Data;
 
 import java.util.List;
@@ -10,10 +11,13 @@ public class Cell {
     private int cellNum;
     private int[] cellCoordinates;
     private List<Integer> neighbors;
+    private CellStatus status;
+    private String cellText = "";
 
     public Cell(int cellNum, int[] cellCoordinates) {
-        this.cellNum = cellNum;
-        this.cellCoordinates = cellCoordinates;
+        setCellNum(cellNum);
+        setCellCoordinates(cellCoordinates);
+        setStatus(CellStatus.UNCLICKED);
     }
 
     void addNeighbors(List<Cell> neighbors) {

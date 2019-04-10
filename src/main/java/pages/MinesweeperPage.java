@@ -1,5 +1,6 @@
 package pages;
 
+import enums.CellStatus;
 import lombok.Getter;
 import lombok.Setter;
 import models.Board;
@@ -31,16 +32,20 @@ public class MinesweeperPage {
     }
 
     public Predicate<Cell> cellIsNotClicked() {
-        return cell -> !getCellBackgroundColor(cell).equals("rgba(169, 169, 169, 1)");
+        return cell -> cell.getStatus() != CellStatus.CLICKED;
     }
 
+    public Predicate<Cell> webElementIsClicked() {
+        return cell -> getCellBackgroundColor(cell).equals("rgba(169, 169, 169, 1)");
+    }
+
+
     public Predicate<Cell> cellIsFlagged() {
-        return cell -> getCellBackgroundColor(cell).equals("rgba(255, 99, 71, 1)");
+        return cell -> cell.getStatus() == CellStatus.FLAGGED;
     }
 
     public Predicate<Cell> cellIsNotClickedAndNotFlagged() {
-        return cell -> !getCellBackgroundColor(cell).equals("rgba(169, 169, 169, 1)") &&
-            !getCellBackgroundColor(cell).equals("rgba(255, 99, 71, 1)");
+        return cell -> cell.getStatus() != CellStatus.CLICKED && cell.getStatus() != CellStatus.FLAGGED;
     }
 
     public Predicate<Cell> cellHasOpenNeighbors() {
@@ -89,8 +94,12 @@ public class MinesweeperPage {
         sleepFor();
     }
 
-    public String getCellText(Cell cell) {
+    public String getWebElementText(Cell cell) {
         return getCellWebElement(cell).getText();
+    }
+
+    public String getCellText(Cell cell) {
+        return cell.getCellText();
     }
 
     private String getCellBackgroundColor(Cell cell) {

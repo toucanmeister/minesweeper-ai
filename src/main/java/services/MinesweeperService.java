@@ -1,5 +1,6 @@
 package services;
 
+import enums.CellStatus;
 import lombok.Getter;
 import lombok.Setter;
 import models.Board;
@@ -34,6 +35,7 @@ public class MinesweeperService {
         createBoard(numOfRows);
 
         getMinesweeperPage().setNumOfRows(numOfRows);
+
         getMinesweeperPage().setNumOfMines(numOfMines);
         getMinesweeperPage().clickStart();
 
@@ -74,6 +76,7 @@ public class MinesweeperService {
                 .toArray(Cell[]::new);
 
         getMinesweeperPage().clickCell(unclickedCells[ThreadLocalRandom.current().nextInt(0, unclickedCells.length)]);
+        updateClickedCells();
     }
 
     private void findAndFlagMines() {
@@ -100,6 +103,7 @@ public class MinesweeperService {
                         .collect(Collectors.toList()));
             }
         }
+
         mines = mines.stream()
                 .distinct()
                 .collect(Collectors.toList());
@@ -128,7 +132,6 @@ public class MinesweeperService {
         List<Cell> cellsWithNeighborMines = findCellsWithNeighbormines();
         List<Cell> safeCells = new ArrayList<>();
 
-        System.out.println("start click");
         for (Cell cell: cellsWithNeighborMines) {
             if (allMinesFoundAround(cell)) {
                 safeCells.addAll(cell.getNeighbors().stream()
@@ -137,7 +140,6 @@ public class MinesweeperService {
                         .collect(Collectors.toList()));
             }
         }
-        System.out.println("stop click");
         return safeCells.stream()
                 .distinct()
                 .collect(Collectors.toList());
@@ -155,11 +157,22 @@ public class MinesweeperService {
         for(Cell cell: safeCells) {
             getMinesweeperPage().clickCell(cell);
         }
+        updateClickedCells();
     }
 
     private void flag(List<Cell> foundMines) {
         for(Cell cell: foundMines) {
             getMinesweeperPage().flagCell(cell);
+            cell.setStatus(CellStatus.FLAGGED);
         }
+    }
+
+    private void updateClickedCells() {
+        Arrays.stream(board.cells)
+            .filter(minesweeperPage.webElementIsClicked())
+            .forEach(cell -> {
+                cell.setStatus(CellStatus.CLICKED);
+                cell.setCellText(getMinesweeperPage().getWebElementText(cell));
+            });
     }
 }

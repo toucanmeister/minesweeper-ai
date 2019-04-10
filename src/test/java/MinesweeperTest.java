@@ -17,8 +17,10 @@ public class MinesweeperTest {
 
     @Test
     void testMinesweeper() {
-        MinesweeperService minesweeperService = new MinesweeperService(driver);
-        minesweeperService.startGame(10,2);
+        for (int i =0; i < 3; i++) {
+            MinesweeperService minesweeperService = new MinesweeperService(driver);
+            minesweeperService.startGame(8,10);
+        }
     }
 
     @AfterEach
