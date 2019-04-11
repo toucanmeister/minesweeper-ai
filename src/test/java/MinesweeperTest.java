@@ -3,6 +3,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import pages.MinesweeperPage;
 import services.MinesweeperService;
 
 public class MinesweeperTest {
@@ -19,7 +20,8 @@ public class MinesweeperTest {
     void testMinesweeper() {
         for (int i =0; i < 3; i++) {
             MinesweeperService minesweeperService = new MinesweeperService(driver);
-            minesweeperService.startGame(8,10);
+            minesweeperService.startGame(16,40);
+            MinesweeperPage.sleepSecond();
         }
     }
 

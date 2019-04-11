@@ -129,6 +129,7 @@ public class MinesweeperService {
 
     private List<Cell> findSafeCells() {
         List<Cell> cellsWithNeighborMines = findCellsWithNeighbormines();
+        cellsWithNeighborMines.forEach(cell -> System.out.println(cell.getCellNum()));
         List<Cell> safeCells = new ArrayList<>();
 
         for (Cell cell: cellsWithNeighborMines) {
@@ -156,6 +157,7 @@ public class MinesweeperService {
         for(Cell cell: safeCells) {
             getMinesweeperPage().clickCell(cell);
             cell.setStatus(CellStatus.CLICKED);
+            cell.setCellText(getMinesweeperPage().getWebElementText(cell));
         }
         updateClickedCells();
     }

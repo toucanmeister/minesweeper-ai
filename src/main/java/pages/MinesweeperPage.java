@@ -81,7 +81,7 @@ public class MinesweeperPage {
         }
     }
 
-    private static void sleepFor() {
+    public static void sleepSecond() {
         try {
             Thread.sleep((long) 1000);
         } catch (InterruptedException e) {
@@ -91,7 +91,7 @@ public class MinesweeperPage {
 
     public void clickStart() {
         getDriver().findElement(startButton).click();
-        sleepFor();
+        sleepSecond();
     }
 
     public String getWebElementText(Cell cell) {
