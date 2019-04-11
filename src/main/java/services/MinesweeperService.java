@@ -35,7 +35,6 @@ public class MinesweeperService {
         createBoard(numOfRows);
 
         getMinesweeperPage().setNumOfRows(numOfRows);
-
         getMinesweeperPage().setNumOfMines(numOfMines);
         getMinesweeperPage().clickStart();
 
@@ -156,6 +155,7 @@ public class MinesweeperService {
     private void click(List<Cell> safeCells) {
         for(Cell cell: safeCells) {
             getMinesweeperPage().clickCell(cell);
+            cell.setStatus(CellStatus.CLICKED);
         }
         updateClickedCells();
     }
