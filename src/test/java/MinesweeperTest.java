@@ -20,7 +20,7 @@ public class MinesweeperTest {
     void testMinesweeper() {
         for (int i =0; i < 3; i++) {
             MinesweeperService minesweeperService = new MinesweeperService(driver);
-            minesweeperService.startGame(16,40);
+            minesweeperService.startGame(8,10);
             MinesweeperPage.sleepSecond();
         }
     }
